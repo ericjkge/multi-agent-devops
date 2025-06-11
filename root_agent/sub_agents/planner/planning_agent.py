@@ -1,5 +1,9 @@
 from google.adk.agents import LlmAgent
-from pydantic import BaseModel, Field
+from google.adk.agents.callback_context import CallbackContext
+from google.genai import types
+from typing import Optional
+
+from ...tools.finalize_specs import finalize_specs
 
 # --- Create Planning Agent ---
 planning_agent = LlmAgent(
@@ -15,6 +19,15 @@ planning_agent = LlmAgent(
     - Confirm the final intent with the user before writing specs.
     - Translate the clarified goal into modular technical features for web app.
     - Output a final structured JSON specification suitable for automatic code generation.
+    - Call the 'finalize_specs' tool to complete the workflow.
+
+    WORKFLOW:
+    1. Gather requirements through questions
+    2. Create JSON specification
+    3. Call 'finalize_specs' tool with the JSON spec to:       
+        - Set specs_finalized flag to true
+        - Store the requirements document
+        - Transfer control to the Coding Agent
 
     IMPORTANT: Your final output MUST be valid JSON matching this structure:
 
@@ -25,9 +38,8 @@ planning_agent = LlmAgent(
         "output": "What output this feature produces",
         "logic": "How it works (in simple steps or pseudocode)",
         "dependencies": ["list", "of", "libraries or tools"]
-    }
-    
-    DO NOT include any explanations or additional text outside the JSON response for your final output.
+    }    
     """,
     output_key="specs",
+    tools=[finalize_specs],
 )
